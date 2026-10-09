@@ -11,8 +11,8 @@
 
 | Service | Platform | Live URL |
 | :--- | :--- | :--- |
-| **Backend API & Swagger** | Render | `https://prn232-ass1.onrender.com` (hoặc domain custom của Render) |
-| **Frontend Web App** | Vercel | `https://prn232-ass1-ass2.vercel.app` (hoặc `https://prn232-ass1.vercel.app`) |
+| **Backend API & Swagger** | Render | `https://prn232-ass2.onrender.com` (hoặc `https://prn232-ass1.onrender.com`) |
+| **Frontend Web App** | Vercel | `https://prn232-ass2-fe.vercel.app` |
 | **PostgreSQL Database** | Render | Managed Cloud PostgreSQL (Oregon) |
 
 ### 🔑 Test Accounts for Grader
