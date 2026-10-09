@@ -79,6 +79,10 @@ public class TaskRepository : ITaskRepository
         existingTask.DueDate = task.DueDate;
         existingTask.ProjectId = task.ProjectId;
         existingTask.ModifiedDate = DateTime.UtcNow;
+        if (task.UpdatedById.HasValue)
+        {
+            existingTask.UpdatedById = task.UpdatedById;
+        }
 
         if (tagIds != null)
         {

@@ -40,7 +40,7 @@ public class TaskService : ITaskService
         return tasks.Select(MapToDto).ToList();
     }
 
-    public async Task<TaskDto> CreateAsync(CreateTaskDto dto)
+    public async Task<TaskDto> CreateAsync(CreateTaskDto dto, int? accountId = null)
     {
         var project = await _projectRepo.GetByIdAsync(dto.ProjectId);
         if (project == null)
@@ -54,14 +54,16 @@ public class TaskService : ITaskService
             Priority = dto.Priority,
             DueDate = dto.DueDate,
             ProjectId = dto.ProjectId,
-            IsActive = true
+            IsActive = true,
+            CreatedById = accountId,
+            UpdatedById = accountId
         };
 
         var created = await _taskRepo.CreateAsync(task, dto.TagIds);
         return MapToDto(created);
     }
 
-    public async Task<TaskDto?> UpdateAsync(int id, UpdateTaskDto dto)
+    public async Task<TaskDto?> UpdateAsync(int id, UpdateTaskDto dto, int? accountId = null)
     {
         var task = await _taskRepo.GetByIdWithTagsAsync(id);
         if (task == null) return null;
@@ -76,6 +78,10 @@ public class TaskService : ITaskService
         task.Priority = dto.Priority;
         task.DueDate = dto.DueDate;
         task.ProjectId = dto.ProjectId;
+        if (accountId.HasValue)
+        {
+            task.UpdatedById = accountId;
+        }
 
         await _taskRepo.UpdateAsync(task, dto.TagIds);
 
@@ -109,6 +115,8 @@ public class TaskService : ITaskService
             IsActive = t.IsActive,
             CreatedDate = t.CreatedDate,
             ModifiedDate = t.ModifiedDate,
+            CreatedById = t.CreatedById,
+            UpdatedById = t.UpdatedById,
             Tags = t.Tags?.Select(tg => new TagDto
             {
                 TagId = tg.TagId,

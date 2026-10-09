@@ -19,6 +19,7 @@ public partial class TaskManagementDbContext : DbContext
     public virtual DbSet<Project> Projects { get; set; }
     public virtual DbSet<Tag> Tags { get; set; }
     public virtual DbSet<Task> Tasks { get; set; }
+    public virtual DbSet<SystemAccount> SystemAccounts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -26,10 +27,28 @@ public partial class TaskManagementDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<SystemAccount>(entity =>
+        {
+            entity.HasKey(e => e.AccountId).HasName("SystemAccount_pkey");
+            entity.ToTable("SystemAccount");
+
+            entity.HasIndex(e => e.Email, "SystemAccount_Email_key").IsUnique();
+
+            entity.Property(e => e.AccountId).HasColumnName("AccountID");
+            entity.Property(e => e.FullName).HasMaxLength(150);
+            entity.Property(e => e.Email).HasMaxLength(150);
+            entity.Property(e => e.PasswordHash).HasMaxLength(255);
+            entity.Property(e => e.Role).HasDefaultValue((short)0);
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.RefreshToken).HasMaxLength(255);
+            entity.Property(e => e.RefreshTokenExpiry).HasColumnType("timestamp without time zone");
+        });
+
         modelBuilder.Entity<Department>(entity =>
         {
             entity.HasKey(e => e.DepartmentId).HasName("Department_pkey");
-
             entity.ToTable("Department");
 
             entity.Property(e => e.DepartmentId).HasColumnName("DepartmentID");
@@ -41,7 +60,6 @@ public partial class TaskManagementDbContext : DbContext
         modelBuilder.Entity<Project>(entity =>
         {
             entity.HasKey(e => e.ProjectId).HasName("Project_pkey");
-
             entity.ToTable("Project");
 
             entity.Property(e => e.ProjectId).HasColumnName("ProjectID");
@@ -53,16 +71,26 @@ public partial class TaskManagementDbContext : DbContext
             entity.Property(e => e.ProjectName).HasMaxLength(200);
             entity.Property(e => e.Status).HasDefaultValue((short)0);
 
+            entity.Property(e => e.CreatedById).HasColumnName("CreatedByID");
+            entity.Property(e => e.UpdatedById).HasColumnName("UpdatedByID");
+
             entity.HasOne(d => d.Department).WithMany(p => p.Projects)
                 .HasForeignKey(d => d.DepartmentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Project_Department");
+
+            entity.HasOne(d => d.CreatedBy).WithMany()
+                .HasForeignKey(d => d.CreatedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(d => d.UpdatedBy).WithMany()
+                .HasForeignKey(d => d.UpdatedById)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Tag>(entity =>
         {
             entity.HasKey(e => e.TagId).HasName("Tag_pkey");
-
             entity.ToTable("Tag");
 
             entity.HasIndex(e => e.TagName, "Tag_TagName_key").IsUnique();
@@ -75,7 +103,6 @@ public partial class TaskManagementDbContext : DbContext
         modelBuilder.Entity<Task>(entity =>
         {
             entity.HasKey(e => e.TaskId).HasName("Task_pkey");
-
             entity.ToTable("Task");
 
             entity.Property(e => e.TaskId).HasColumnName("TaskID");
@@ -89,10 +116,21 @@ public partial class TaskManagementDbContext : DbContext
             entity.Property(e => e.Status).HasDefaultValue((short)0);
             entity.Property(e => e.Title).HasMaxLength(300);
 
+            entity.Property(e => e.CreatedById).HasColumnName("CreatedByID");
+            entity.Property(e => e.UpdatedById).HasColumnName("UpdatedByID");
+
             entity.HasOne(d => d.Project).WithMany(p => p.Tasks)
                 .HasForeignKey(d => d.ProjectId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Task_Project");
+
+            entity.HasOne(d => d.CreatedBy).WithMany()
+                .HasForeignKey(d => d.CreatedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(d => d.UpdatedBy).WithMany()
+                .HasForeignKey(d => d.UpdatedById)
+                .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasMany(d => d.Tags).WithMany(p => p.Tasks)
                 .UsingEntity<Dictionary<string, object>>(

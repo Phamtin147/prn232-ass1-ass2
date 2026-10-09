@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +37,7 @@ public class DepartmentsController : ControllerBase
         return Ok(department);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateDepartmentDto dto)
     {
@@ -54,6 +57,7 @@ public class DepartmentsController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateDepartmentDto dto)
     {
@@ -77,6 +81,7 @@ public class DepartmentsController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

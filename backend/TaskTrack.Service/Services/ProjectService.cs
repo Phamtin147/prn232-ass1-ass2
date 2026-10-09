@@ -72,7 +72,7 @@ public class ProjectService : IProjectService
         return projects.Select(MapToDto).ToList();
     }
 
-    public async Task<ProjectDto> CreateAsync(CreateProjectDto dto)
+    public async Task<ProjectDto> CreateAsync(CreateProjectDto dto, int? accountId = null)
     {
         var dept = await _deptRepo.GetByIdAsync(dto.DepartmentId);
         if (dept == null)
@@ -86,14 +86,16 @@ public class ProjectService : IProjectService
             EndDate = dto.EndDate,
             Status = dto.Status,
             DepartmentId = dto.DepartmentId,
-            IsActive = dto.IsActive
+            IsActive = dto.IsActive,
+            CreatedById = accountId,
+            UpdatedById = accountId
         };
 
         var created = await _projectRepo.CreateAsync(project);
         return MapToDto(created);
     }
 
-    public async Task<ProjectDto?> UpdateAsync(int id, UpdateProjectDto dto)
+    public async Task<ProjectDto?> UpdateAsync(int id, UpdateProjectDto dto, int? accountId = null)
     {
         var project = await _projectRepo.GetByIdAsync(id);
         if (project == null) return null;
@@ -109,6 +111,10 @@ public class ProjectService : IProjectService
         project.Status = dto.Status;
         project.DepartmentId = dto.DepartmentId;
         project.IsActive = dto.IsActive;
+        if (accountId.HasValue)
+        {
+            project.UpdatedById = accountId;
+        }
 
         await _projectRepo.UpdateAsync(project);
         return MapToDto(project);
@@ -148,7 +154,9 @@ public class ProjectService : IProjectService
             DepartmentId = p.DepartmentId,
             DepartmentName = p.Department?.DepartmentName ?? string.Empty,
             IsActive = p.IsActive,
-            CreatedDate = p.CreatedDate
+            CreatedDate = p.CreatedDate,
+            CreatedById = p.CreatedById,
+            UpdatedById = p.UpdatedById
         };
     }
 }

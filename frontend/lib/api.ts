@@ -1,12 +1,84 @@
-import { Department, DepartmentDetail, Project, ProjectDetail, Task, Tag, Stats } from './types';
+import {
+  Department,
+  DepartmentDetail,
+  Project,
+  ProjectDetail,
+  Task,
+  Tag,
+  Stats,
+  Account,
+  AuthResponse,
+} from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+function getStoredToken(): string | null {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('token');
+  }
+  return null;
+}
+
+function getStoredRefreshToken(): string | null {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('refreshToken');
+  }
+  return null;
+}
+
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: unknown) => void;
+  reject: (reason?: unknown) => void;
+}> = [];
+
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+async function refreshAccessToken(): Promise<string | null> {
+  const currentRefreshToken = getStoredRefreshToken();
+  if (!currentRefreshToken) return null;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/auth/refresh-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: currentRefreshToken }),
+    });
+
+    if (!res.ok) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      return null;
+    }
+
+    const data: AuthResponse = await res.json();
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('refreshToken', data.refreshToken);
+    localStorage.setItem('user', JSON.stringify(data.account));
+    return data.token;
+  } catch {
+    return null;
+  }
+}
+
+async function request<T>(endpoint: string, options?: RequestInit, isRetry = false): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  const headers = {
+  const token = getStoredToken();
+
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options?.headers || {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...((options?.headers as Record<string, string>) || {}),
   };
 
   const response = await fetch(url, {
@@ -14,6 +86,36 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     headers,
     cache: 'no-store',
   });
+
+  if (response.status === 401 && !isRetry && !endpoint.includes('/api/auth/login') && !endpoint.includes('/api/auth/refresh-token')) {
+    if (isRefreshing) {
+      return new Promise<T>((resolve, reject) => {
+        failedQueue.push({
+          resolve: () => resolve(request<T>(endpoint, options, true)),
+          reject: (err) => reject(err),
+        });
+      });
+    }
+
+    isRefreshing = true;
+    const newToken = await refreshAccessToken();
+    isRefreshing = false;
+
+    if (newToken) {
+      processQueue(null, newToken);
+      return request<T>(endpoint, options, true);
+    } else {
+      processQueue(new Error('Session expired'), null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        if (window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/profile')) {
+          window.location.href = '/login';
+        }
+      }
+    }
+  }
 
   if (!response.ok) {
     let errorMessage = `API Error: ${response.status} ${response.statusText}`;
@@ -29,7 +131,9 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     } catch {
       // ignore
     }
-    throw new Error(errorMessage);
+    const err = new Error(errorMessage) as Error & { status?: number };
+    err.status = response.status;
+    throw err;
   }
 
   if (response.status === 204) {
@@ -39,22 +143,77 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   return response.json();
 }
 
-// Department API
 export const api = {
+  // Auth & Profile
+  async register(data: { fullName: string; email: string; password: string }): Promise<Account> {
+    return request<Account>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  async login(data: { email: string; password: string }): Promise<AuthResponse> {
+    return request<AuthResponse>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  async refreshToken(refreshToken: string): Promise<AuthResponse> {
+    return request<AuthResponse>('/api/auth/refresh-token', {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken }),
+    });
+  },
+  async getProfile(): Promise<Account> {
+    return request<Account>('/api/auth/profile');
+  },
+  async updateProfile(data: { fullName: string }): Promise<Account> {
+    return request<Account>('/api/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+  async changePassword(data: { currentPassword: string; newPassword: string }): Promise<{ message: string }> {
+    return request<{ message: string }>('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Account Management (Admin only)
+  async getAccounts(): Promise<Account[]> {
+    return request<Account[]>('/api/accounts');
+  },
+  async getAccountById(id: number): Promise<Account> {
+    return request<Account>(`/api/accounts/${id}`);
+  },
+  async updateAccount(id: number, data: { fullName?: string; role?: number }): Promise<Account> {
+    return request<Account>(`/api/accounts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+  async deleteAccount(id: number): Promise<{ message: string }> {
+    return request<{ message: string }>(`/api/accounts/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
   // Stats
   async getStats(): Promise<Stats> {
     try {
       return await request<Stats>('/api/stats');
     } catch {
-      const [departments, projects, tasks] = await Promise.all([
+      const [departments, projects, tasks, tags] = await Promise.all([
         api.getDepartments().catch(() => []),
         api.getProjects().catch(() => []),
         api.getTasks().catch(() => []),
+        api.getTags().catch(() => []),
       ]);
       return {
         departmentsCount: departments.length,
         projectsCount: projects.length,
         tasksCount: tasks.length,
+        tagsCount: tags.length,
       };
     }
   },

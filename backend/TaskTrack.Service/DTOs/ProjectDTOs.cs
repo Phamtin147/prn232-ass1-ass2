@@ -16,6 +16,8 @@ public class ProjectDto
     public string DepartmentName { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public DateTime CreatedDate { get; set; }
+    public int? CreatedById { get; set; }
+    public int? UpdatedById { get; set; }
 }
 
 public class ProjectDetailDto : ProjectDto

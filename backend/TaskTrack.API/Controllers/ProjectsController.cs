@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -42,6 +44,7 @@ public class ProjectsController : ControllerBase
         return Ok(projects);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateProjectDto dto)
     {
@@ -52,7 +55,11 @@ public class ProjectsController : ControllerBase
 
         try
         {
-            var created = await _projectService.CreateAsync(dto);
+            int? accountId = null;
+            var idClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("AccountID");
+            if (int.TryParse(idClaim, out int aid)) accountId = aid;
+
+            var created = await _projectService.CreateAsync(dto, accountId);
             return CreatedAtAction(nameof(GetById), new { id = created.ProjectId }, created);
         }
         catch (ArgumentException ex)
@@ -65,6 +72,7 @@ public class ProjectsController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateProjectDto dto)
     {
@@ -75,7 +83,11 @@ public class ProjectsController : ControllerBase
 
         try
         {
-            var updated = await _projectService.UpdateAsync(id, dto);
+            int? accountId = null;
+            var idClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("AccountID");
+            if (int.TryParse(idClaim, out int aid)) accountId = aid;
+
+            var updated = await _projectService.UpdateAsync(id, dto, accountId);
             if (updated == null)
             {
                 return NotFound(new { message = $"Project with ID {id} not found." });
@@ -92,6 +104,7 @@ public class ProjectsController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

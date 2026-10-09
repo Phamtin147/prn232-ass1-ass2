@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +37,7 @@ public class TagsController : ControllerBase
         return Ok(tag);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTagDto dto)
     {
@@ -54,6 +57,7 @@ public class TagsController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateTagDto dto)
     {
@@ -77,6 +81,7 @@ public class TagsController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

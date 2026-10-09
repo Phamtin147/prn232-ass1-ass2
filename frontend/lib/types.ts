@@ -21,6 +21,8 @@ export interface Project {
   departmentName?: string;
   isActive: boolean;
   createdDate: string;
+  createdById?: number;
+  updatedById?: number;
   tasks?: Task[];
 }
 
@@ -46,6 +48,8 @@ export interface Task {
   isActive: boolean;
   createdDate: string;
   modifiedDate?: string;
+  createdById?: number;
+  updatedById?: number;
   tags: Tag[];
 }
 
@@ -53,4 +57,19 @@ export interface Stats {
   departmentsCount: number;
   projectsCount: number;
   tasksCount: number;
+  tagsCount?: number;
+}
+
+export interface Account {
+  accountId: number;
+  fullName: string;
+  email: string;
+  role: number; // 0 = Staff, 1 = Admin
+  createdDate: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  refreshToken: string;
+  account: Account;
 }

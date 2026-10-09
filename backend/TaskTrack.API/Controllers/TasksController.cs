@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -42,6 +44,7 @@ public class TasksController : ControllerBase
         return Ok(tasks);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTaskDto dto)
     {
@@ -52,7 +55,11 @@ public class TasksController : ControllerBase
 
         try
         {
-            var created = await _taskService.CreateAsync(dto);
+            int? accountId = null;
+            var idClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("AccountID");
+            if (int.TryParse(idClaim, out int aid)) accountId = aid;
+
+            var created = await _taskService.CreateAsync(dto, accountId);
             return CreatedAtAction(nameof(GetById), new { id = created.TaskId }, created);
         }
         catch (ArgumentException ex)
@@ -65,6 +72,7 @@ public class TasksController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateTaskDto dto)
     {
@@ -75,7 +83,11 @@ public class TasksController : ControllerBase
 
         try
         {
-            var updated = await _taskService.UpdateAsync(id, dto);
+            int? accountId = null;
+            var idClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("AccountID");
+            if (int.TryParse(idClaim, out int aid)) accountId = aid;
+
+            var updated = await _taskService.UpdateAsync(id, dto, accountId);
             if (updated == null)
             {
                 return NotFound(new { message = $"Task with ID {id} not found." });
@@ -92,6 +104,7 @@ public class TasksController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

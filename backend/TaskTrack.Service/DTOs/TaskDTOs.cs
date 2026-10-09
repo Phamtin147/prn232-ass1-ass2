@@ -17,6 +17,8 @@ public class TaskDto
     public bool IsActive { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? ModifiedDate { get; set; }
+    public int? CreatedById { get; set; }
+    public int? UpdatedById { get; set; }
     public List<TagDto> Tags { get; set; } = new();
 }
 
