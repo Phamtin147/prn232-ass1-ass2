@@ -11,7 +11,7 @@
 
 | Service | Platform | Live URL |
 | :--- | :--- | :--- |
-| **Backend API & Swagger** | Render | `https://prn232-ass2.onrender.com` (hoặc `https://prn232-ass1.onrender.com`) |
+| **Backend API & Swagger** | Render | `https://prn232-ass1.onrender.com` |
 | **Frontend Web App** | Vercel | `https://prn232-ass2-fe.vercel.app` |
 | **PostgreSQL Database** | Render | Managed Cloud PostgreSQL (Oregon) |
 
