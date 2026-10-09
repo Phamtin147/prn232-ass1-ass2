@@ -6,6 +6,7 @@ COPY backend/TaskTrack.sln ./backend/
 COPY backend/TaskTrack.Repo/TaskTrack.Repo.csproj ./backend/TaskTrack.Repo/
 COPY backend/TaskTrack.Service/TaskTrack.Service.csproj ./backend/TaskTrack.Service/
 COPY backend/TaskTrack.API/TaskTrack.API.csproj ./backend/TaskTrack.API/
+COPY backend/TaskTrack.Tests/TaskTrack.Tests.csproj ./backend/TaskTrack.Tests/
 RUN dotnet restore backend/TaskTrack.sln
 
 COPY backend/ ./backend/

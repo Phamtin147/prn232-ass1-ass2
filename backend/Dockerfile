@@ -7,6 +7,7 @@ COPY TaskTrack.sln ./
 COPY TaskTrack.Repo/TaskTrack.Repo.csproj TaskTrack.Repo/
 COPY TaskTrack.Service/TaskTrack.Service.csproj TaskTrack.Service/
 COPY TaskTrack.API/TaskTrack.API.csproj TaskTrack.API/
+COPY TaskTrack.Tests/TaskTrack.Tests.csproj TaskTrack.Tests/
 RUN dotnet restore TaskTrack.sln
 
 # Copy full source and build
