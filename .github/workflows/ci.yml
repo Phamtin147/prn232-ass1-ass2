@@ -26,6 +26,9 @@ jobs:
       - name: Build solution
         run: dotnet build backend/TaskTrack.sln --no-restore -c Release
 
+      - name: Run Unit Tests
+        run: dotnet test backend/TaskTrack.sln --no-build -c Release --verbosity normal
+
   frontend-build:
     name: Lint & Build Next.js Frontend
     runs-on: ubuntu-latest

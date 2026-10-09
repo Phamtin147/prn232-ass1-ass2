@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTrack.Repo", "TaskTrack
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTrack.Service", "TaskTrack.Service\TaskTrack.Service.csproj", "{0A097ABB-B68C-494C-ADB0-0A635B179729}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTrack.Tests", "TaskTrack.Tests\TaskTrack.Tests.csproj", "{05246E55-C0FF-4A65-A06F-D8E6B5888544}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{0A097ABB-B68C-494C-ADB0-0A635B179729}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A097ABB-B68C-494C-ADB0-0A635B179729}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A097ABB-B68C-494C-ADB0-0A635B179729}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05246E55-C0FF-4A65-A06F-D8E6B5888544}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05246E55-C0FF-4A65-A06F-D8E6B5888544}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05246E55-C0FF-4A65-A06F-D8E6B5888544}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05246E55-C0FF-4A65-A06F-D8E6B5888544}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
